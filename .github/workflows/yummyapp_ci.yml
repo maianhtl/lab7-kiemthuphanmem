@@ -1,0 +1,33 @@
+name: YummyApp CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "1. Checkout Source Code"
+        uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Execute unit tests
+        run: |
+          flake8 --count --select=E9,F63,F7,F82 --show-source --statistics
+          coverage run -m unittest discover -s tests -v
+          coverage report --fail-under=90
+          coverage html
+      - name: Upload HTML coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+          retention-days: 7
